@@ -1,11 +1,11 @@
 SYSCONF_LINK = g++
 CPPFLAGS	 = -Wall -std=c++14
 LDFLAGS		 = -O3
-LIBS		 = -lm -lglfw -framework OpenGl
-INC			 = -I./include
+LIBS		 = -lm -lglfw -lglew -framework OpenGl
+INC			 = -I./include -I./common
 
 # Additional folders for file look up
-VPATH 	= src:include
+VPATH 	= src:include:common
 DESTDIR = ./
 TARGET  = TinyGLSL
 

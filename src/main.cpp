@@ -1,46 +1,78 @@
+// Include standard headers
+#include <stdio.h>
+#include <stdlib.h>
+
+// include GLEW
+#include <GL/glew.h>
+
+// Include GLFW
 #include <GLFW/glfw3.h>
+GLFWwindow* window;
+
+// Include GLM
 #include <glm/glm.hpp>
+using namespace glm;
 
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
-
-void render_scene() 
+int main( void )
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glLoadIdentity();
-    // lookAt
-    glColor3f(.8, 0.f, 1.f);
-}
+	// Initialise GLFW
+	if( !glfwInit() )
+	{
+		fprintf( stderr, "Failed to initialize GLFW\n" );
+		getchar();
+		return -1;
+	}
 
-int main() 
-{
-    GLFWwindow* window;
+	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // Initialize the library
-    if (!glfwInit()) return -1;
+    // Open a window and create its OpenGL context
+	window = glfwCreateWindow( 1024, 768, "Tutorial 02 - Red triangle", NULL, NULL);
+	if( window == NULL ){
+		fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
+		getchar();
+		glfwTerminate();
+		return -1;
+	}
+	glfwMakeContextCurrent(window);
 
-    // Create a wwindows mode window and its OpenGL context
-    window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "TinyGLSL", NULL, NULL);
-    if (!window) {
-        glfwTerminate();
-        return -1;
-    }
+    // Initialize GLEW
+	glewExperimental = true; // Needed for core profile
+	if (glewInit() != GLEW_OK) {
+		fprintf(stderr, "Failed to initialize GLEW\n");
+		getchar();
+		glfwTerminate();
+		return -1;
+	}
 
-    // Make the window's context current
-    glfwMakeContextCurrent(window);
+    // Ensure we can capture the escape key being pressed below
+	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
-    // loop until the user closes the window
-    while (!glfwWindowShouldClose(window)) {
-        // render here
-        render_scene();
+	// Dark blue background
+	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
-        // swap front and back buffers
+    GLuint VertexArrayID;
+    glGenVertexArrays(1, &VertexArrayID);
+    glBindVertexArray(VertexArrayID);
+
+    do {
+        // clear the screen.
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        // Draw nothing
+
+        // Swap buffers
         glfwSwapBuffers(window);
-
-        // poll for and process events
         glfwPollEvents();
-    }
 
+    } // check if the ESC kez was pressed or the window closed
+    while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
+            glfwWindowShouldClose(window) == 0);
+
+    // close OpenGL window and terminate GLFW
     glfwTerminate();
 
     return 0;
