@@ -13,6 +13,8 @@ GLFWwindow* window;
 #include <glm/glm.hpp>
 using namespace glm;
 
+#include <common/shader.hpp>
+
 int main( void )
 {
 	// Initialise GLFW
@@ -58,11 +60,40 @@ int main( void )
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
 
+    static const GLfloat g_vertex_buffer_data[] = {
+        -1.f, -1.f,  0.f,
+         1.f, -1.f,  0.f,
+         0.f,  1.f,  0.f
+    };
+
+    // identify our vertex buffer
+    GLuint vertexbuffer;
+    // generate one buffer, put identifier in vertexbuffer
+    glGenBuffers(1, &vertexbuffer);
+    // bind buffer object to specified buffer binding point
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    // give our vertices to OpenGL
+    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+
     do {
         // clear the screen.
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // Draw nothing
+        // 1st attribute buffer: vertices
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+        glVertexAttribPointer(
+            0,          // attribute 0, must match the layout in the shader
+            3,          // size
+            GL_FLOAT,   // type
+            GL_FALSE,   // normalized
+            0,          // stride
+            (void*)0     // array buffer offset
+        );
+
+        // Draw the triangle
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDisableVertexAttribArray(0);
 
         // Swap buffers
         glfwSwapBuffers(window);
