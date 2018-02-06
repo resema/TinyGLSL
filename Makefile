@@ -10,7 +10,7 @@ DESTDIR = ./
 TARGET  = TinyGLSL
 
 # Replace all found cpp files to .o for prerequisites
-OBJECTS = $(patsubst %.cpp,%.o,$(wildcard src/*.cpp))
+OBJECTS = $(patsubst %.cpp,%.o,$(wildcard src/*.cpp common/*.cpp))
 
 all: $(DESTDIR)$(TARGET)
 
