@@ -31,7 +31,7 @@ int main( void )
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Open a window and create its OpenGL context
-	window = glfwCreateWindow( 1024, 768, "Tutorial 02 - Red triangle", NULL, NULL);
+	window = glfwCreateWindow( 640, 480, "Tutorial 02 - Red triangle", NULL, NULL);
 	if (window == NULL) {
 		fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
 		getchar();
@@ -59,6 +59,9 @@ int main( void )
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
 
+    // create and compile our GLSL program from the shaders
+    GLuint programID = LoadShaders("shaders/SimpleVertexShader.vs", "shaders/SimpleFragmentShader.fs");
+
     static const GLfloat g_vertex_buffer_data[] = {
         -1.f, -1.f,  0.f,
          1.f, -1.f,  0.f,
@@ -76,7 +79,10 @@ int main( void )
 
     do {
         // clear the screen.
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // use our shader
+        glUseProgram(programID);
 
         // 1st attribute buffer: vertices
         glEnableVertexAttribArray(0);
@@ -101,6 +107,11 @@ int main( void )
     } // check if the ESC kez was pressed or the window closed
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
             glfwWindowShouldClose(window) == 0);
+
+    // cleanup VBO
+    glDeleteBuffers(1, &vertexbuffer);
+    glDeleteVertexArrays(1, &VertexArrayID);
+    glDeleteProgram(programID);
 
     // close OpenGL window and terminate GLFW
     glfwTerminate();

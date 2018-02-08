@@ -96,7 +96,7 @@ GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path)
 
     // clean up
     glDetachShader(ProgramID, VertexShaderID);
-    glDetachShader(ProgramId, FragmentShaderID);
+    glDetachShader(ProgramID, FragmentShaderID);
 
     glDeleteShader(VertexShaderID);
     glDeleteShader(FragmentShaderID);
