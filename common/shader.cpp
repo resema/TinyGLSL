@@ -78,5 +78,28 @@ GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path)
         printf("%s\n", &FragmentShaderErrorMessage[0]);
     }
 
-    return 0;
+    // CREATE and LINK the PROGRAM
+    printf("Linking program\n");
+    GLuint ProgramID = glCreateProgram();
+    glAttachShader(ProgramID, VertexShaderID);
+    glAttachShader(ProgramID, FragmentShaderID);
+    glLinkProgram(ProgramID);
+
+    // check the program
+    glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
+    glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+    if (InfoLogLength > 0) {
+        std::vector<char> ProgramErrorMessage(InfoLogLength+1);
+        glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
+        printf("%s\n", &ProgramErrorMessage[0]);
+    }
+
+    // clean up
+    glDetachShader(ProgramID, VertexShaderID);
+    glDetachShader(ProgramId, FragmentShaderID);
+
+    glDeleteShader(VertexShaderID);
+    glDeleteShader(FragmentShaderID);
+
+    return ProgramID;
 }
