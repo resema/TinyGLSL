@@ -64,12 +64,13 @@ int main( void )
 
     // projection matrix: 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
     glm::mat4 Projection = glm::perspective(glm::radians(45.f), 4.f/3.f, 0.1f, 100.f);
+    // glm::mat4 Projection = glm::ortho(-10.f, 10.f, -10.f, 10.f, 0.f, 100.f);
 
     // camera matrix
     glm::mat4 View = glm::lookAt(
         glm::vec3(4,3,3),   // camera position
         glm::vec3(0,0,0),   // camera looks at origin
-        glm::vec3(0,1,0   // up vector
+        glm::vec3(0,1,0)   // up vector
     );
 
     // model matrix: an identity matrix = model is suited at the world space origin
@@ -105,7 +106,7 @@ int main( void )
 
         // send our transformation to the currently bound shader 
         //  this is done in the main loop since each model has a own M in MVP
-        glUniformMatrix4fv
+        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
 
         // 1st attribute buffer: vertices
         glEnableVertexAttribArray(0);
@@ -121,6 +122,7 @@ int main( void )
 
         // Draw the triangle
         glDrawArrays(GL_TRIANGLES, 0, 3);
+        
         glDisableVertexAttribArray(0);
 
         // Swap buffers
