@@ -11,7 +11,7 @@ GLFWwindow* window;
 
 // Include GLM
 #include <glm/glm.hpp>
-using namespace glm;
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <common/shader.hpp>
 
@@ -31,7 +31,7 @@ int main( void )
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Open a window and create its OpenGL context
-	window = glfwCreateWindow( 640, 480, "Tutorial 02 - Red triangle", NULL, NULL);
+	window = glfwCreateWindow( 640, 480, "Tutorial 03 - Matrices", NULL, NULL);
 	if (window == NULL) {
 		fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
 		getchar();
@@ -62,6 +62,25 @@ int main( void )
     // create and compile our GLSL program from the shaders
     GLuint programID = LoadShaders("shaders/SimpleVertexShader.vs", "shaders/SimpleFragmentShader.fs");
 
+    // projection matrix: 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+    glm::mat4 Projection = glm::perspective(glm::radians(45.f), 4.f/3.f, 0.1f, 100.f);
+
+    // camera matrix
+    glm::mat4 View = glm::lookAt(
+        glm::vec3(4,3,3),   // camera position
+        glm::vec3(0,0,0),   // camera looks at origin
+        glm::vec3(0,1,0   // up vector
+    );
+
+    // model matrix: an identity matrix = model is suited at the world space origin
+    glm::mat4 Model = glm::mat4(1.f);
+
+    // create the ModelViewProjection Matrix
+    glm::mat4 mvp = Projection * View * Model;
+
+    // get a handle for our "MVP" uniform 
+    GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+
     static const GLfloat g_vertex_buffer_data[] = {
         -1.f, -1.f,  0.f,
          1.f, -1.f,  0.f,
@@ -83,6 +102,10 @@ int main( void )
 
         // use our shader
         glUseProgram(programID);
+
+        // send our transformation to the currently bound shader 
+        //  this is done in the main loop since each model has a own M in MVP
+        glUniformMatrix4fv
 
         // 1st attribute buffer: vertices
         glEnableVertexAttribArray(0);
