@@ -1,8 +1,12 @@
 #version 330 core
 
+// input data
+in vec3 fragmentColor;
+
+// output data
 out vec3 color;
 
 void main()
 {
-    color = vec3(1,0,0);
+    color = fragmentColor;
 }
