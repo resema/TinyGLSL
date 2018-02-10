@@ -75,14 +75,30 @@ int main( void )
 
     // model matrix: an identity matrix = model is suited at the world space origin
     glm::mat4 Model = glm::mat4(1.f);
+    // model matrix: translated origin
+    glm::mat4 Model_tri = glm::translate(Model, glm::vec3(1, 0, 0));
 
     // create the ModelViewProjection Matrix
     glm::mat4 mvp = Projection * View * Model;
+    glm::mat4 mvp_tri = Projection * View * Model_tri;
 
     // get a handle for our "MVP" uniform 
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
-    // model
+    // model triangle
+    static const GLfloat g_triangle_vertex_buffer_data[] = {
+        -1.0f, -1.0f, 0.0f,
+		 1.0f, -1.0f, 0.0f,
+		 0.0f,  1.0f, 0.0f,
+    };
+
+    // vertex buffer
+    GLuint vertexbuffer_tri;
+    glGenBuffers(1, &vertexbuffer_tri);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer_tri);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(g_triangle_vertex_buffer_data), g_triangle_vertex_buffer_data, GL_STATIC_DRAW);
+
+    // model cube
     static const GLfloat g_vertex_buffer_data[] = {
         -1.0f,-1.0f,-1.0f, // triangle 1 : begin
         -1.0f,-1.0f, 1.0f,
@@ -173,8 +189,17 @@ int main( void )
 
     GLuint colorbuffer;
     glGenBuffers(1, &colorbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
+
+    // one color for each vertex. specific for the triangle
+    static GLfloat g_triangle_color_buffer_data[3*3];
+
+    GLuint colorbuffer_tri;
+    glGenBuffers(1, &colorbuffer_tri);
+
+    // enable depth test
+    glEnable(GL_DEPTH_TEST);
+    // accept framgent if it is closer to the camera than the former
+    glDepthFunc(GL_LESS);
 
     do {
         // clear the screen.
@@ -186,6 +211,10 @@ int main( void )
         // send our transformation to the currently bound shader 
         //  this is done in the main loop since each model has a own M in MVP
         glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
+
+        // bind buffer for cube
+        glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
 
         // 1st attribute buffer: vertices
         glEnableVertexAttribArray(0);
@@ -211,9 +240,56 @@ int main( void )
             (void*)0    // array buffer offset
         );
 
-        // Draw the triangle
+        // Draw the cube
         glDrawArrays(GL_TRIANGLES, 0, 3*12);
 
+        // bind buffer for triangle
+        glBindBuffer(GL_ARRAY_BUFFER, colorbuffer_tri);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(g_triangle_color_buffer_data), g_triangle_color_buffer_data, GL_STATIC_DRAW);
+
+        // triangle specific MVP
+        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp_tri[0][0]);
+
+        // draw triangle
+        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer_tri);
+        glVertexAttribPointer(
+            0,          // attribute 0, must match the layout in the shader
+            3,          // size
+            GL_FLOAT,   // type
+            GL_FALSE,   // normalized
+            0,          // stride
+            (void*)0    // array buffer offset
+        );
+
+        // change the color in each frame
+        static int frame = 0;
+        if (frame > 255) {
+            frame = 0;
+        }
+        frame++;
+        for (int v = 0; v < 3; v++) {
+            g_triangle_color_buffer_data[3*v+0] = 1.f / 255.f * frame;
+            g_triangle_color_buffer_data[3*v+1] = 0;
+            g_triangle_color_buffer_data[3*v+2] = 0;
+        }
+
+        // 2nd attribute buffer : colors
+        glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, colorbuffer_tri);
+        glVertexAttribPointer(
+            1,          // attribute 1
+            3,          // size
+            GL_FLOAT,   // type
+            GL_FALSE,   // normalized
+            0,          // stride
+            (void*)0    // array buffer offset
+        );
+
+        // draw the triangle
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        // disable connection to the shader
+        glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(0);
 
         // Swap buffers
