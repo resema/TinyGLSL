@@ -52,8 +52,62 @@ GLuint loadBMP(const char* imagepath)
     height      = *(int*)&(header[0x16]);       // bitmap height in pixel
 
     // if some BMP files are misformatted, guess missing information
-    if (imageSize == 0)
+    if (imageSize == 0) {
         imageSize = width * height * 3;     // 3: one byte for each Red, Green and Blue
-    if (dataPos == 0)
+    }
+    if (dataPos == 0) {
         dataPos = 54;                       // BMP header is done that way
+    }
+
+    // create a buffer
+    data = new unsigned char[imageSize];
+
+    // read the actuzl data from the file into the buffer
+    fread(data, 1, imageSize, file);
+
+    // everything is in memory now, the file can be closed
+    fclose(file);
+
+    // CREATE one OpenGL texture
+    GLuint textureID;
+    glGenTextures(
+        1,          // number of texture names to be generated
+        &textureID  // array which stores the generated texture names  
+        );  
+
+    // BIND the newly created texture: all future texture functions will modify texture
+    glBindTexture(
+        GL_TEXTURE_2D,  // specify target
+        textureID       // texture name
+        );
+
+    // FILL the image and give it to OpenGL
+    glTexImage2D(
+        GL_TEXTURE_2D,      // target texture
+        0,                  // level of detail
+        GL_RGB,             // internal format
+        width, height,      // texture image
+        0,                  // border
+        GL_BGR,             // data format
+        GL_UNSIGNED_BYTE,   // data type
+        data                // ptr to image data
+        );
+
+    // OpenGL has now copied the data
+    delete [] data;
+
+    // CONFIGURE it (poor filtering)
+    glTexParameteri(
+        GL_TEXTURE_2D,          // target texture
+        GL_TEXTURE_MAG_FILTER,  // symbolic name
+        GL_NEAREST              // value of name
+    );
+    glTexParameteri(
+        GL_TEXTURE_2D,
+        GL_TEXTURE_MAG_FILTER,
+        GL_NEAREST
+    );
+
+    // return the ID of the texture just created
+    return textureID;
 }

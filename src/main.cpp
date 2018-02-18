@@ -14,6 +14,7 @@ GLFWwindow* window;
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <common/shader.hpp>
+#include <common/texture.hpp>
 
 int main( void )
 {
@@ -55,6 +56,11 @@ int main( void )
 	// Dark blue background
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
+    // enable depth test
+    glEnable(GL_DEPTH_TEST);
+    // accept fragment if it is closer to the camera than the former one
+    glDepthFunc(GL_LESS);
+
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
@@ -94,6 +100,15 @@ int main( void )
     glGenBuffers(1, &vertexbuffer_tri);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer_tri);
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_triangle_vertex_buffer_data), g_triangle_vertex_buffer_data, GL_STATIC_DRAW);
+
+    // load the texture using any two methods
+    GLuint Texture = loadBMP("uvtemplate.bmp");
+
+    // get a handle for "myTextureSamle" uniform
+    GLuint TextureID = glGetUniformLocation(
+        programID,              // program object
+        "myTextureSampler"      // name of uniform variable
+    );
 
     // model cube
     static const GLfloat g_vertex_buffer_data[] = {
