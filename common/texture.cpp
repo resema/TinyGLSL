@@ -22,25 +22,25 @@ GLuint loadBMP(const char* imagepath)
 
     // read the header, i.e. the 54 first bytes
     if (fread(header, 1, 54, file) != 54) {
-        printf("Not a correct BMP file\n");
+        printf("Not a correct BMP file (0)\n");
         fclose(file);
         return 0;
     }
     // a BMP file always begins with "BM"
     if (header[0] != 'B' || header[1] != 'M') {
-        printf("Not a correct BMP file\n");
+        printf("Not a correct BMP file (1)\n");
         fclose(file);
         return 0;
     }
     // make sure this is a 24 bpp file
     //  check https://en.wikipedia.org/wiki/BMP_file_format#Bitmap_file_header
     if (*(int*)&(header[0x1E]) != 0) {          // compression method
-        printf("Not a correct BMP file\n");
+        printf("Not a correct BMP file (2)\n");
         fclose(file);
         return 0;
     }
-    if (*(int*)&(header[0x1C]) != 0) {          // number of bits per pixel
-        printf("Not a correct BMP file\n");
+    if (*(int*)&(header[0x1C]) != 24) {          // number of bits per pixel
+        printf("Not a correct BMP file (3)\n");
         fclose(file);
         return 0;
     }
@@ -97,16 +97,40 @@ GLuint loadBMP(const char* imagepath)
     delete [] data;
 
     // CONFIGURE it (poor filtering)
+    // glTexParameteri(
+    //     GL_TEXTURE_2D,          // target texture
+    //     GL_TEXTURE_MAG_FILTER,  // symbolic name
+    //     GL_NEAREST              // value of name
+    // );
+    // glTexParameteri(
+    //     GL_TEXTURE_2D,
+    //     GL_TEXTURE_MIN_FILTER,
+    //     GL_NEAREST
+    // );
+
+    // CONFIGURE it (trilinear filtering)
     glTexParameteri(
-        GL_TEXTURE_2D,          // target texture
-        GL_TEXTURE_MAG_FILTER,  // symbolic name
-        GL_NEAREST              // value of name
+        GL_TEXTURE_2D,              // target texture
+        GL_TEXTURE_WRAP_S,          // symbolic name
+        GL_REPEAT                   // value of name
+    );
+    glTexParameteri(
+        GL_TEXTURE_2D,              // target texture
+        GL_TEXTURE_WRAP_T,          // symbolic name
+        GL_REPEAT                   // value of name
     );
     glTexParameteri(
         GL_TEXTURE_2D,
         GL_TEXTURE_MAG_FILTER,
-        GL_NEAREST
+        GL_LINEAR
     );
+    glTexParameteri(
+        GL_TEXTURE_2D,
+        GL_TEXTURE_MIN_FILTER,
+        GL_LINEAR_MIPMAP_LINEAR
+    );
+    // ... which requires mipmaps. -> generate them automatically
+    glGenerateMipmap(GL_TEXTURE_2D);
 
     // return the ID of the texture just created
     return textureID;
