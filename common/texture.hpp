@@ -2,6 +2,8 @@
 #define TEXTURE_HPP
 
 #include <stdio.h>
+#include <stdlib.h>         // used for malloc()
+#include <string.h>         // used for strncmp()
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>

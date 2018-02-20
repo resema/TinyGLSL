@@ -62,8 +62,10 @@ GLuint loadBMP(const char* imagepath)
     // create a buffer
     data = new unsigned char[imageSize];
 
-    // read the actuzl data from the file into the buffer
+    // read the actual data from the file into the buffer
     fread(data, 1, imageSize, file);
+    printf("%d\n", *(int*)&(header[0x12]));
+    printf("%d\n", *(int*)&(data[0x12]));
 
     // everything is in memory now, the file can be closed
     fclose(file);
@@ -134,4 +136,52 @@ GLuint loadBMP(const char* imagepath)
 
     // return the ID of the texture just created
     return textureID;
+}
+
+GLuint loadDDs(const char* imagepath)
+{
+    constexpr unsigned int FOURCC_DXT1 = 0x31545844; // Equivalent to "DXT1" in ASCII
+    constexpr unsigned int FOURCC_DXT3 = 0x33545844; // Equivalent to "DXT3" in ASCII
+    constexpr unsigned int FOURCC_DXT5 = 0x35545844; // Equivalent to "DXT5" in ASCII
+
+    unsigned char header[124];
+
+    FILE* fp;
+
+    // try to open the file
+    fp = fopen(imagepath, "rb");
+    if (fp == NULL) {
+        printf("%s could not be open.\n", imagepath);
+        getchar();
+        return 0;
+    }
+
+    // verify the type of file
+    char filecode[4];
+    fread(filecode, 1, 4, fp);
+    if (strncmp(filecode, "DDS", 4) != 0) {
+        fclose(fp);
+        return 0;
+    }
+
+    // get the surface desc
+    // https://msdn.microsoft.com/en-us/library/bb943982.aspx
+    fread(&header, 124, 1, fp);
+
+    unsigned int height         = *(unsigned int*)&(header[8]);     // third WORD of DDS_HEADER struct
+    unsigned int width          = *(unsigned int*)&(header[12]);    // forth WORD
+    unsigned int linearSize     = *(unsigned int*)&(header[16]);    // fifth WORD
+    unsigned int mipMapCount    = *(unsigned int*)&(header[24]);    // seventh WORD
+    unsigned int fourCC         = *(unsigned int*)&(header[80]);    // third WORD in DDS_PIXELFORMAT
+
+    unsigned char* buffer;
+    unsigned int bufsize;
+
+    // how big is it going to be including all mipmaps?
+    bufsize = mipMapCount > 1 ? linearSize * 2 : linearSize;
+    buffer = (unsigned char*)malloc(bufsize * sizeof(unsigned char));
+    fread(buffer, 1, bufsize, fp);
+    fclose(fp);
+
+    return 0;
 }
