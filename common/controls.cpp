@@ -28,7 +28,7 @@ float speed = 3.f;  // 3 units per second
 float mouseSpeed = 0.005f;
 
 
-void computeMatricesFromInput()
+void computeMatricesFromInputs()
 {
     // glfwGetTime is called only once, the first time this function is called
     static double lastTime = glfwGetTime();
@@ -81,4 +81,25 @@ void computeMatricesFromInput()
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
         position -= right * deltaTime * speed;
     }
+
+    // Now GLFW3 requires setting a callback for this
+    float FoV = initialFoV;
+
+    // projection matrix : 45˚ FoV, 4:3 ratio, display range : 0.1 unit <-> 100 units
+    ProjectionMatrix = glm::perspective(
+        glm::radians(FoV),  // fovy
+        4.f / 3.f,          // aspect
+        0.1f,               // near
+        100.f               // far
+    );
+
+    // camera matrix
+    ViewMatrix = glm::lookAt(
+        position,               // camera is here
+        position + direction,   // and looks here
+        up                      // head is up
+    );
+
+    // for the next frame, the last time will be now
+    lastTime = currentTime;
 }
