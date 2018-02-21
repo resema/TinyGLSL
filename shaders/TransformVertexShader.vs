@@ -18,7 +18,7 @@ void main()
     // UV of the vertex. No special space for BMP
     // UV = vertexUV;
 
-    // UV of the vertex. DirectX world : V texture coord is inversed compared to OPENL
+    // UV of the vertex. DirectX world : V texture coord is inversed compared to OPENL.
     vec2 invVertexUV = vertexUV;
     invVertexUV.y = (1.f - vertexUV.y);
 
