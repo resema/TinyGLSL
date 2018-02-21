@@ -89,7 +89,8 @@ int main( void )
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
     // load the texture
-    GLuint Texture = loadBMP("textures/uvtemplate.bmp");
+    // GLuint Texture = loadBMP("textures/uvtemplate.bmp");
+    GLuint Texture = loadDDS("textures/uvtemplate.DDS");
 
     // get a handle for "myTextureSamle" uniform
     GLuint TextureID = glGetUniformLocation(

@@ -15,6 +15,12 @@ void main()
     // output position of the vertex, in clip space : MVP * position
     gl_Position = MVP * vec4(vertexPosition_modelspace, 1);
 
-    // UV of the vertex. No special space for this one
-    UV = vertexUV;
+    // UV of the vertex. No special space for BMP
+    // UV = vertexUV;
+
+    // UV of the vertex. DirectX world : V texture coord is inversed compared to OPENL
+    vec2 invVertexUV = vertexUV;
+    invVertexUV.y = (1.f - vertexUV.y);
+
+    UV = invVertexUV;
 }
