@@ -16,6 +16,7 @@ GLFWwindow* window;
 #include <common/shader.hpp>
 #include <common/texture.hpp>
 #include <common/controls.hpp>
+#include <common/objloader.hpp>
 
 int main( void )
 {
@@ -36,7 +37,7 @@ int main( void )
 	window = glfwCreateWindow( 640, 480, "TinyGLSL", NULL, NULL);
 	if (window == NULL) {
 		fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
-		getchar();
+        getchar();
 		glfwTerminate();
 		return -1;
 	}
@@ -64,6 +65,8 @@ int main( void )
 	// Dark blue background
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
+    // cull triangles which normal is not towards the camera
+    glEnable(GL_CULL_FACE);
     // enable depth test
     glEnable(GL_DEPTH_TEST);
     // accept fragment if it is closer to the camera than the former one
@@ -89,6 +92,7 @@ int main( void )
         "myTextureSampler"      // name of uniform variable
     );
 
+    //
     // model cube
     static const GLfloat g_vertex_buffer_data[] = {
         -1.0f,-1.0f,-1.0f, // triangle 1 : begin
@@ -138,6 +142,7 @@ int main( void )
     // give our vertices to OpenGL
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
+    //
     // Two UV coordinatesfor each vertex. They were created with Blender.
 	static const GLfloat g_uv_buffer_data[] = { 
 		0.000059f, 1.0f-0.000004f, 

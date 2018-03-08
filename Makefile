@@ -5,12 +5,12 @@ LIBS		 = -lm -lglfw -lglew -framework OpenGl
 INC			 = -I./include -I./
 
 # Additional folders for file look up
-VPATH 	= src:include:common
+VPATH 	= src:include:include/common
 DESTDIR = ./
 TARGET  = TinyGLSL
 
 # Replace all found cpp files to .o for prerequisites
-OBJECTS = $(patsubst %.cpp,%.o,$(wildcard src/*.cpp common/*.cpp))
+OBJECTS = $(patsubst %.cpp,%.o,$(wildcard src/*.cpp src/common/*.cpp))
 
 all: $(DESTDIR)$(TARGET)
 
