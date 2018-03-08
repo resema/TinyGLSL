@@ -58,7 +58,7 @@ void computeMatricesFromInputs()
     // right vector
     glm::vec3 right = glm::vec3(
         sin(horizontalAngle - 3.14f/2.f),
-        0,
+        0,                                  // always horizontal
         cos(horizontalAngle - 3.14f/2.f)
     );
 
@@ -66,22 +66,30 @@ void computeMatricesFromInputs()
     glm::vec3 up = glm::cross(right, direction);
 
     // move forward
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         position += direction * deltaTime * speed;
     }
     // move backward
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
         position -= direction * deltaTime * speed;
     }
     // move forward
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
         position += right * deltaTime * speed;
     }
     // move forward
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
         position -= right * deltaTime * speed;
     }
-
+    // move up
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+        position += up * deltaTime * speed;
+    }
+    // move down
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+        position -= up * deltaTime * speed;
+    }
+    
     // Now GLFW3 requires setting a callback for this
     float FoV = initialFoV;
 
