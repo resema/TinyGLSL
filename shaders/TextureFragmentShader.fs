@@ -6,7 +6,7 @@ in vec2 UV;
 // output data
 out vec3 color;
 
-// values that staz constant for the whole mesh
+// values that stay constant for the whole mesh
 uniform sampler2D myTextureSampler;
 
 void main() 
