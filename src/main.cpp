@@ -1,6 +1,7 @@
 // Include standard headers
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector>
 
 // include GLEW
 #include <GL/glew.h>
@@ -80,15 +81,17 @@ int main( void )
     glBindVertexArray(VertexArrayID);
 
     // create and compile our GLSL program from the shaders
-    GLuint programID = LoadShaders("shaders/TransformVertexShader.vs", "shaders/TextureFragmentShader.fs");
+    GLuint programID = LoadShaders("shaders/StandardShading.vs", "shaders/StandardShading.fs");
 
     // get a handle for our "MVP" uniform 
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+    GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
+    GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
 
     // load the texture
-    GLuint Texture = loadDDS("textures/uvmap.DDS");
+    GLuint Texture = loadDDS("textures/uvmap-2.DDS");
 
-    // get a handle for "myTextureSamle" uniform
+    // get a handle for "myTextureSampler" uniform
     GLuint TextureID = glGetUniformLocation(
         programID,              // program object
         "myTextureSampler"      // name of uniform variable
@@ -98,7 +101,7 @@ int main( void )
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals;
-    bool res = loadOBJ("models/cube.obj", vertices, uvs, normals);
+    bool res = loadOBJ("models/suzanne.obj", vertices, uvs, normals);
     if (!res)
     {
         fprintf(stderr, "Failed to load .OBJ model\n");
@@ -123,6 +126,15 @@ int main( void )
     glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
     glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
 
+    GLuint normalbuffer;
+    glGenBuffers(1, &normalbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+    glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
+
+    // get a handle for our "LightPosition" uniform
+    glUseProgram(programID);
+    GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
+
     do {
         // clear the screen.
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -140,6 +152,11 @@ int main( void )
         // send our transformation to the currently bound shader 
         //  in the "MVP" uniform
         glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+        glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
+        glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
+
+        glm::vec3 lightPos = glm::vec3(4,4,4);
+        glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
 
         // bind our texture in Texture Unit 0
         glActiveTexture(GL_TEXTURE0);
@@ -171,12 +188,25 @@ int main( void )
             (void*)0    // array buffer offset
         );
 
-        // Draw the cube
-        glDrawArrays(GL_TRIANGLES, 0, 12*3);
+        // 3rd attribute buffer : normals
+        glEnableVertexAttribArray(2);
+        glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+        glVertexAttribPointer(
+            2,          // attribute 2
+            3,          // size : normals => 3
+            GL_FLOAT,   // tzpe
+            GL_FALSE,   // normalized?
+            0,          // stride
+            (void*)0    // array buffer offset
+        );
+
+        // Draw the triangles
+        glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 
         // disable connection to the shader
-        glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
+        glDisableVertexAttribArray(2);
 
         // Swap buffers
         glfwSwapBuffers(window);
@@ -188,10 +218,11 @@ int main( void )
 
     // cleanup VBO
     glDeleteBuffers(1, &vertexbuffer);
-    glDeleteBuffers(2, &uvbuffer);
-    glDeleteVertexArrays(1, &VertexArrayID);
+    glDeleteBuffers(1, &uvbuffer);
+    glDeleteBuffers(1, &normalbuffer);
     glDeleteProgram(programID);
     glDeleteTextures(1, &Texture);
+    glDeleteVertexArrays(1, &VertexArrayID);
 
     // close OpenGL window and terminate GLFW
     glfwTerminate();
