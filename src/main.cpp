@@ -135,7 +135,22 @@ int main( void )
     glUseProgram(programID);
     GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
 
+    // for speed computation
+    double lastTime = glfwGetTime();
+    int nbFrames = 0;
+
     do {
+        // measure speed
+        double currentTime = glfwGetTime();
+        nbFrames++;
+        if (currentTime - lastTime >= 1.0)  // if last printf() was more then 1sec ago
+        {
+            // printf and reset
+            printf("%f ms/frame\n", 1000.0 / double(nbFrames));
+            nbFrames = 0;
+            lastTime += 1.0;    // deltaT is 1sec
+        }
+
         // clear the screen.
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -194,7 +209,7 @@ int main( void )
         glVertexAttribPointer(
             2,          // attribute 2
             3,          // size : normals => 3
-            GL_FLOAT,   // tzpe
+            GL_FLOAT,   // type
             GL_FALSE,   // normalized?
             0,          // stride
             (void*)0    // array buffer offset

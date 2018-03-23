@@ -14,7 +14,7 @@
 GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path) 
 {
     //
-    // create the SHADERS
+    // CREATE the SHADERS
     GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
     GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 
@@ -85,7 +85,7 @@ GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path)
     glAttachShader(ProgramID, FragmentShaderID);
     glLinkProgram(ProgramID);
 
-    // check the program
+    // CHECK the PROGRAM
     glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
     glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
     if (InfoLogLength > 0) {
