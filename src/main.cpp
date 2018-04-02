@@ -18,6 +18,7 @@ GLFWwindow* window;
 #include <common/texture.hpp>
 #include <common/controls.hpp>
 #include <common/objloader.hpp>
+#include <common/vboindexer.hpp>
 
 int main( void )
 {
@@ -110,6 +111,17 @@ int main( void )
 		return -1;
     }
 
+    // index VBO
+    std::vector<unsigned short> indices;
+    std::vector<glm::vec3> indexed_vertices;
+    std::vector<glm::vec2> indexed_uvs;
+    std::vector<glm::vec3> indexed_normals;
+    indexVBO(
+        vertices, uvs, normals, indices, 
+        indexed_vertices, indexed_uvs, indexed_normals
+        );
+
+    //
     // load it into a VBO
 
     // identify our vertex buffer
@@ -119,17 +131,22 @@ int main( void )
     // bind buffer object to specified buffer binding point
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     // give our vertices to OpenGL
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
 
     GLuint uvbuffer;
     glGenBuffers(1, &uvbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-    glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, indexed_uvs.size() * sizeof(glm::vec2), &indexed_uvs[0], GL_STATIC_DRAW);
 
     GLuint normalbuffer;
     glGenBuffers(1, &normalbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-    glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, indexed_normals.size() * sizeof(glm::vec3), &indexed_normals[0], GL_STATIC_DRAW);
+
+    GLuint elementbuffer;
+    glGenBuffers(1, &elementbuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
 
     // get a handle for our "LightPosition" uniform
     glUseProgram(programID);
@@ -215,8 +232,16 @@ int main( void )
             (void*)0    // array buffer offset
         );
 
-        // Draw the triangles
-        glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+        // index buffer
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+
+        // draw the triangles
+        glDrawElements(
+            GL_TRIANGLES,       // mode
+            indices.size(),     // count
+            GL_UNSIGNED_SHORT,  // type
+            (void*)0            // element array buffer offset
+            );
 
         // disable connection to the shader
         glDisableVertexAttribArray(0);
