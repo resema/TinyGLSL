@@ -108,7 +108,7 @@ bool getSimilarVertexIndex_fast(
     }
 }
 
-// void indexVBO(
+void indexVBO(
         std::vector<glm::vec3> &in_vertices,
         std::vector<glm::vec2> &in_uvs,
         std::vector<glm::vec3> &in_normals,
