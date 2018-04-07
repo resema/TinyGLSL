@@ -71,7 +71,7 @@ int main( void )
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
     // cull triangles which normal is not towards the camera
-    glEnable(GL_CULL_FACE);
+    // glEnable(GL_CULL_FACE);    // due to opacity
     // enable depth test
     glEnable(GL_DEPTH_TEST);
     // accept fragment if it is closer to the camera than the former one
@@ -131,22 +131,42 @@ int main( void )
     // bind buffer object to specified buffer binding point
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     // give our vertices to OpenGL
-    glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
+    glBufferData(
+        GL_ARRAY_BUFFER, 
+        indexed_vertices.size() * sizeof(glm::vec3), 
+        &indexed_vertices[0], 
+        GL_STATIC_DRAW
+        );
 
     GLuint uvbuffer;
     glGenBuffers(1, &uvbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-    glBufferData(GL_ARRAY_BUFFER, indexed_uvs.size() * sizeof(glm::vec2), &indexed_uvs[0], GL_STATIC_DRAW);
+    glBufferData(
+        GL_ARRAY_BUFFER, 
+        indexed_uvs.size() * sizeof(glm::vec2), 
+        &indexed_uvs[0], 
+        GL_STATIC_DRAW
+        );
 
     GLuint normalbuffer;
     glGenBuffers(1, &normalbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-    glBufferData(GL_ARRAY_BUFFER, indexed_normals.size() * sizeof(glm::vec3), &indexed_normals[0], GL_STATIC_DRAW);
+    glBufferData(
+        GL_ARRAY_BUFFER, 
+        indexed_normals.size() * sizeof(glm::vec3), 
+        &indexed_normals[0], 
+        GL_STATIC_DRAW
+        );
 
     GLuint elementbuffer;
     glGenBuffers(1, &elementbuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER, 
+        indices.size() * sizeof(unsigned short), 
+        &indices[0], 
+        GL_STATIC_DRAW
+        );
 
     // get a handle for our "LightPosition" uniform
     glUseProgram(programID);
@@ -155,6 +175,10 @@ int main( void )
     // for speed computation
     double lastTime = glfwGetTime();
     int nbFrames = 0;
+
+    // enable blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     do {
         // measure speed
