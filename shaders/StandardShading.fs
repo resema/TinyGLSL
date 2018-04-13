@@ -8,7 +8,7 @@ in vec3 EyeDirection_cameraspace;
 in vec3 LightDirection_cameraspace;
 
 // output data
-out vec4 color;
+out vec3 color;
 
 // values that stay constant for the whole mesh
 uniform sampler2D myTextureSampler;
@@ -53,13 +53,11 @@ void main()
     float cosAlpha = clamp(dot(E,R), 0, 1);
 
     // final color
-    color.rgb = 
+    color = 
             // ambient : simulates indirect lighting 
             MaterialAmbientColor +
             // diffuse : "color" of the object
             MaterialDiffuseColor * LightColor * LightPower * cosTheta / pow(distance,2) +
             // specular : reflective highlight, like a mirror
             MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha, 5) / pow(distance,2);
-
-    color.a = 0.3;
 }

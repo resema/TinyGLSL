@@ -19,6 +19,7 @@ GLFWwindow* window;
 #include <common/controls.hpp>
 #include <common/objloader.hpp>
 #include <common/vboindexer.hpp>
+#include <common/text2D.hpp>
 
 int main( void )
 {
@@ -121,6 +122,9 @@ int main( void )
         indexed_vertices, indexed_uvs, indexed_normals
         );
 
+        //
+    // load it into a VBO
+
     // identify our vertex buffer
     GLuint vertexbuffer;
     // generate one buffer, put identifier in vertexbuffer
@@ -155,8 +159,7 @@ int main( void )
         GL_STATIC_DRAW
         );
 
-    //
-    // load it into a VBO
+    // generate a buffer for the indices as well
     GLuint elementbuffer;
     glGenBuffers(1, &elementbuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
@@ -171,13 +174,12 @@ int main( void )
     glUseProgram(programID);
     GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
 
+    // initialize our little text library with the Holstein font
+    initText2D("Holstein.DDS");     // contains hardcoded shaders
+
     // for speed computation
     double lastTime = glfwGetTime();
     int nbFrames = 0;
-
-    // enable blending
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     do {
         // measure speed
@@ -271,6 +273,15 @@ int main( void )
         glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(2);
 
+        char text[256];
+        sprintf(text, "%.2f sec", glfwGetTime);
+        printText2D(
+            text,   // text to be displayed
+            10,     // position x
+            500,    // position y
+            10      // size
+        );
+
         // Swap buffers
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -286,6 +297,9 @@ int main( void )
     glDeleteProgram(programID);
     glDeleteTextures(1, &Texture);
     glDeleteVertexArrays(1, &VertexArrayID);
+
+    // delete the text's VBO, the shader and the texture
+    cleanupText2D();
 
     // close OpenGL window and terminate GLFW
     glfwTerminate();
