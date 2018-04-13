@@ -258,7 +258,7 @@ int main( void )
         // index buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
 
-        // draw the triangles
+        // draw the triangles from the VBO
         glDrawElements(
             GL_TRIANGLES,       // mode
             indices.size(),     // count
