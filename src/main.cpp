@@ -121,9 +121,6 @@ int main( void )
         indexed_vertices, indexed_uvs, indexed_normals
         );
 
-    //
-    // load it into a VBO
-
     // identify our vertex buffer
     GLuint vertexbuffer;
     // generate one buffer, put identifier in vertexbuffer
@@ -158,6 +155,8 @@ int main( void )
         GL_STATIC_DRAW
         );
 
+    //
+    // load it into a VBO
     GLuint elementbuffer;
     glGenBuffers(1, &elementbuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
