@@ -27,7 +27,7 @@ void initText2D(const char* texturePath)
     glGenBuffers(1, &Text2DUVBufferID);
 
     // initialize shader
-    Text2DShaderID = LoadShaders("TextVertexShader.vs", "TextVertexShader.fs");
+    Text2DShaderID = LoadShaders("shaders/TextVertexShader.vs", "shaders/TextVertexShader.fs");
 
     // initialize uniforms' IDs
     Text2DUniformID = glGetUniformLocation(Text2DShaderID, "myTextureSampler");
@@ -53,7 +53,7 @@ void printText2D(const char* text, int x, int y, int size)
 
         vertices.push_back(vertex_down_right);
         vertices.push_back(vertex_up_right);
-        vertices.push_back(vertex_down_right);
+        vertices.push_back(vertex_down_left);
 
         char character = text[i];
         float uv_x = (character % 16) / 16.f;       // funny calculation to get row and col

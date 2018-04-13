@@ -175,7 +175,7 @@ int main( void )
     GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
 
     // initialize our little text library with the Holstein font
-    initText2D("Holstein.DDS");     // contains hardcoded shaders
+    initText2D("textures/Holstein.DDS");     // contains hardcoded shaders
 
     // for speed computation
     double lastTime = glfwGetTime();
@@ -279,7 +279,7 @@ int main( void )
             text,   // text to be displayed
             10,     // position x
             500,    // position y
-            10      // size
+            30      // size
         );
 
         // Swap buffers
