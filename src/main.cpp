@@ -274,7 +274,7 @@ int main( void )
         glDisableVertexAttribArray(2);
 
         char text[256];
-        sprintf(text, "%.2f sec", glfwGetTime);
+        sprintf(text, "%.2f sec", glfwGetTime());
         printText2D(
             text,   // text to be displayed
             10,     // position x
