@@ -21,72 +21,6 @@ GLFWwindow* window;
 #include <common/vboindexer.hpp>
 #include <common/text2D.hpp>
 
-// debug callback for the ARB_debug_output extension
-void APIENTRY DebugOutputCallback(
-    GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, 
-    const GLchar* message, const void* userParam
-    )
-{
-    printf("OpenGL Debug Output message : ");
-
-    switch(source)
-    {
-        case GL_DEBUG_SOURCE_API_ARB: 
-            printf("Source : API; ");
-            break;
-        case GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB:
-            printf("Source : WINDOW_SYSTEM; ");
-            break;
-        case GL_DEBUG_SOURCE_THIRD_PARTY_ARB:
-            printf("Source : THIRD_PARTY; ");
-            break;
-        case GL_DEBUG_SOURCE_APPLICATION_ARB:
-            printf("Source : APPLICATION; ");
-            break;
-        case GL_DEBUG_SOURCE_OTHER_ARB:
-            printf("Source : OTHER; ");
-            break;
-    }
-
-    switch(type)
-    {
-        case GL_DEBUG_TYPE_ERROR_ARB:
-            printf("Type : ERROR; ");
-            break;
-        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB:
-            printf("Type : DEPRECATED_BEHAVIOR; ");
-            break;
-        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB:
-            printf("Type : UNDEFINED_BEHAVIOUR; ");
-            break;
-        case GL_DEBUG_TYPE_PORTABILITY_ARB:
-            printf("Type : PORTABILITY; ");
-            break;
-        case GL_DEBUG_TYPE_PERFORMANCE_ARB:
-            printf("Type : PERFORMANCE; ");
-            break;
-        case GL_DEBUG_TYPE_OTHER_ARB:
-            printf("Type : OTHER; ");
-            break;
-    }
-
-    switch(severity)
-    {
-        case GL_DEBUG_SEVERITY_HIGH_ARB:
-            printf("Severity : HIGH; ");
-            break;
-        case GL_DEBUG_SEVERITY_MEDIUM_ARB:
-            printf("Severity : MEDIUM; ");
-            break;
-        case GL_DEBUG_SEVERITY_LOW_ARB:
-            printf("Severity : LOW");
-            break;
-    }
-
-    // place for breakpoint if debugging
-    printf("Message: %s\n", message);
-}
-
 int main( void )
 {
 	// Initialise GLFW
@@ -102,10 +36,6 @@ int main( void )
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    // ARB_debug_output is a bit special
-    //  it requires creating the OpenGL context with particular flags
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
 
     // Open a window and create its OpenGL context
 	window = glfwCreateWindow( 640, 480, "TinyGLSL", NULL, NULL);
@@ -127,18 +57,6 @@ int main( void )
 		glfwTerminate();
 		return -1;
 	}
-
-    // Debug example:
-    if (GLEW_ARB_debug_output)
-    {
-        printf("OpenGL impl provides debug output.\n");
-        glDebugMessageCallbackARB(&DebugOutputCallback, NULL);
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
-    }
-    else
-    {
-        printf("ARB_debug_output is unavailable.\n");
-    }
 
     // Ensure we can capture the escape key being pressed below
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
