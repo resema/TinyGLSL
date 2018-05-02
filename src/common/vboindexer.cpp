@@ -26,7 +26,7 @@ bool is_near(float v1, float v2)
 bool getSimilarVertexIndex(
         glm::vec3 &in_vertex,
         glm::vec2 &in_uv,
-        glm::vec3 &in_normals,
+        glm::vec3 &in_normal,
 
         std::vector<glm::vec3> &out_vertices,
         std::vector<glm::vec2> &out_uvs,
@@ -42,9 +42,9 @@ bool getSimilarVertexIndex(
             is_near(in_vertex.z, out_vertices[i].z) &&
             is_near(in_uv.x,     out_uvs[i].x)      &&
             is_near(in_uv.y,     out_uvs[i].y)      &&
-            is_near(in_normals.x, out_normals[i].x) &&
-            is_near(in_normals.y, out_normals[i].y) &&
-            is_near(in_normals.z, out_normals[i].z)   )
+            is_near(in_normal.x, out_normals[i].x)  &&
+            is_near(in_normal.y, out_normals[i].y)  &&
+            is_near(in_normal.z, out_normals[i].z)   )
         {
              result = i;
              return true;
@@ -190,7 +190,7 @@ void indexVBO_TBN(
             out_uvs.push_back(in_uvs[i]);
             out_normals.push_back(in_normals[i]);
             out_tangents.push_back(in_tangents[i]);
-            out_bitangents.push_back(out_bitangents[i]);
+            out_bitangents.push_back(in_bitangents[i]);
             out_indices.push_back((unsigned short)out_vertices.size() - 1);
         }
     }

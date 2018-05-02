@@ -20,6 +20,7 @@ GLFWwindow* window;
 #include <common/objloader.hpp>
 #include <common/vboindexer.hpp>
 #include <common/text2D.hpp>
+#include <common/tangentspace.hpp>
 
 int main( void )
 {
@@ -72,7 +73,7 @@ int main( void )
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
     // cull triangles which normal is not towards the camera
-    // glEnable(GL_CULL_FACE);    // due to opacity
+    glEnable(GL_CULL_FACE);    // disable in case of opacity
     // enable depth test
     glEnable(GL_DEPTH_TEST);
     // accept fragment if it is closer to the camera than the former one
@@ -83,27 +84,38 @@ int main( void )
     glBindVertexArray(VertexArrayID);
 
     // create and compile our GLSL program from the shaders
-    GLuint programID = LoadShaders("shaders/StandardShading.vs", "shaders/StandardShading.fs");
+    GLuint programID = LoadShaders("shaders/NormalMapping.vs", "shaders/NormalMapping.fs");
 
     // get a handle for our "MVP" uniform 
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
     GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
     GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
+    GLuint ModelView3x3MatrixID = glGetUniformLocation(programID, "MV3x3");
 
     // load the texture
-    GLuint Texture = loadDDS("textures/uvmap-2.DDS");
+    GLuint DiffuseTexture = loadDDS("textures/diffuse.DDS");
+    GLuint NormalTexture = loadBMP("textures/normal.bmp");
+    GLuint SpecularTexture = loadDDS("textures/specular.DDS");
 
     // get a handle for "myTextureSampler" uniform
-    GLuint TextureID = glGetUniformLocation(
-        programID,              // program object
-        "myTextureSampler"      // name of uniform variable
+    GLuint DiffuseTextureID = glGetUniformLocation(
+        programID,                  // program object
+        "DiffuseTextureSampler"     // name of uniform variable
+    );
+    GLuint NormalTextureID = glGetUniformLocation(
+        programID,                  // program object
+        "NormalTextureSampler"      // name of uniform variable
+    );
+    GLuint SpecularTextureID = glGetUniformLocation(
+        programID,                  // program object
+        "SpecularTextureSampler"    // name of uniform variable
     );
 
     // read our .obj file
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals;
-    bool res = loadOBJ("models/suzanne.obj", vertices, uvs, normals);
+    bool res = loadOBJ("models/cylinder.obj", vertices, uvs, normals);
     if (!res)
     {
         fprintf(stderr, "Failed to load .OBJ model\n");
@@ -112,17 +124,27 @@ int main( void )
 		return -1;
     }
 
+    // calculate tangent basis
+    std::vector<glm::vec3> tangents;
+    std::vector<glm::vec3> bitangents;
+    computeTangentBasis(
+        vertices, uvs, normals, // inputs
+        tangents, bitangents    // outputs
+    );
+
     // index VBO
     std::vector<unsigned short> indices;
     std::vector<glm::vec3> indexed_vertices;
     std::vector<glm::vec2> indexed_uvs;
     std::vector<glm::vec3> indexed_normals;
-    indexVBO(
-        vertices, uvs, normals, indices, 
-        indexed_vertices, indexed_uvs, indexed_normals
+    std::vector<glm::vec3> indexed_tangents;
+    std::vector<glm::vec3> indexed_bitangents;
+    indexVBO_TBN(
+        vertices, uvs, normals, tangents, bitangents,
+        indices, indexed_vertices, indexed_uvs, indexed_normals, indexed_tangents, indexed_bitangents
         );
 
-        //
+    //
     // load it into a VBO
 
     // identify our vertex buffer
@@ -158,6 +180,26 @@ int main( void )
         &indexed_normals[0], 
         GL_STATIC_DRAW
         );
+
+    GLuint tangentbuffer;
+    glGenBuffers(1, &tangentbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        indexed_tangents.size() * sizeof(glm::vec3),
+        &indexed_tangents[0],
+        GL_STATIC_DRAW
+    );
+
+    GLuint bitangentbuffer;
+    glGenBuffers(1, &bitangentbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, bitangentbuffer);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        indexed_bitangents.size() * sizeof(glm::vec3),
+        &indexed_bitangents[0],
+        GL_STATIC_DRAW
+    );
 
     // generate a buffer for the indices as well
     GLuint elementbuffer;
@@ -204,6 +246,8 @@ int main( void )
         glm::mat4 ProjectionMatrix = getProjectionMatrix();
         glm::mat4 ViewMatrix = getViewMatrix();
         glm::mat4 ModelMatrix = glm::mat4(1.0);
+        glm::mat4 ModelViewMatrix = ViewMatrix * ModelMatrix;
+        glm::mat3 MV3x3Matrix = glm::mat3(ModelViewMatrix);
         glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
 
         // send our transformation to the currently bound shader 
@@ -211,15 +255,28 @@ int main( void )
         glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
         glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
         glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
+        glUniformMatrix3fv(ModelView3x3MatrixID, 1, GL_FALSE, &MV3x3Matrix[0][0]);
 
         glm::vec3 lightPos = glm::vec3(4,4,4);
         glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
 
         // bind our texture in Texture Unit 0
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, Texture);
-        // set "myTextureSampler" sampler to use Texture Unit 0
-        glUniform1i(TextureID, 0);
+        glBindTexture(GL_TEXTURE_2D, DiffuseTexture);
+        // set "DiffuseTextureSampler" sampler to use Texture Unit 0
+        glUniform1i(DiffuseTextureID, 0);
+
+        // bind our normal texture in Texture unit 1
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, NormalTexture);
+        // set "NormalTextureSampler" sampler to use Texture Unit 1
+        glUniform1i(NormalTextureID, 1);
+
+        // bind our specular texture in Texture unit 2
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, SpecularTexture);
+        // set "NormalTextureSampler" sampler to use Texture Unit 2
+        glUniform1i(SpecularTextureID, 2);
 
         // 1st attribute buffer: vertices
         glEnableVertexAttribArray(0);
@@ -257,6 +314,30 @@ int main( void )
             (void*)0    // array buffer offset
         );
 
+        // 4th attribute buffer : tangents
+        glEnableVertexAttribArray(3);
+        glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
+        glVertexAttribPointer(
+            3,          // attribute 3
+            3,          // size : normals => 3
+            GL_FLOAT,   // type
+            GL_FALSE,   // normalized?
+            0,          // stride
+            (void*)0    // array buffer offset
+        );
+
+        // 5th attribute buffer : bitangents
+        glEnableVertexAttribArray(4);
+        glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
+        glVertexAttribPointer(
+            4,          // attribute 4
+            3,          // size : normals => 3
+            GL_FLOAT,   // type
+            GL_FALSE,   // normalized?
+            0,          // stride
+            (void*)0    // array buffer offset
+        );
+
         // index buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
 
@@ -272,6 +353,8 @@ int main( void )
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(2);
+        glDisableVertexAttribArray(3);
+        glDisableVertexAttribArray(4);
 
         char text[256];
         sprintf(text, "%.2f sec", glfwGetTime());
@@ -281,6 +364,15 @@ int main( void )
             500,    // position y
             30      // size
         );
+
+        /***********************************************************************
+         *  DEBUG ONLY
+         *   Don't use this in real code!!
+         ***********************************************************************/
+
+
+
+        /***********************************************************************/
 
         // Swap buffers
         glfwSwapBuffers(window);
@@ -294,8 +386,13 @@ int main( void )
     glDeleteBuffers(1, &vertexbuffer);
     glDeleteBuffers(1, &uvbuffer);
     glDeleteBuffers(1, &normalbuffer);
+    glDeleteBuffers(1, &tangentbuffer);
+    glDeleteBuffers(1, &bitangentbuffer);
+    glDeleteBuffers(1, &elementbuffer);
     glDeleteProgram(programID);
-    glDeleteTextures(1, &Texture);
+    glDeleteTextures(1, &DiffuseTexture);
+    glDeleteTextures(1, &NormalTexture);
+    glDeleteTextures(1, &SpecularTexture);
     glDeleteVertexArrays(1, &VertexArrayID);
 
     // delete the text's VBO, the shader and the texture
