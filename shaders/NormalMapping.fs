@@ -3,9 +3,6 @@
 // interpolated values from the vertex shaders
 in vec2 UV;
 in vec3 Position_worldspace;
-in vec3 EyeDirection_cameraspace;
-in vec3 LightDirection_cameraspace;
-
 in vec3 LightDirection_tangentspace;
 in vec3 EyeDirection_tangentspace;
 
@@ -71,4 +68,7 @@ void main()
             MaterialDiffuseColor * LightColor * LightPower * cosTheta / pow(distance,2) +
             // specular : reflective highlight, like a mirror
             MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha, 5) / pow(distance,2);
+
+    // debugging
+    // color.xyz = TextureNormal_tangentspace;
 }
